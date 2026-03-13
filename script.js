@@ -8,7 +8,7 @@ const playlistMenu = document.getElementById('playlist-menu');
 const videoMenu = document.getElementById('video-menu');
 const closeMenu = document.getElementById('close-menu');
 
-// Playlist
+// Playlist avec liens directs
 const playlist = [
     { title: "Musique 1", src: "https://files.catbox.moe/zwwfjh.mp4" },
     { title: "Musique 2", src: "https://files.catbox.moe/zwwfjh.mp4" }
@@ -19,7 +19,7 @@ let history = [];
 
 // Charger vidéo
 function loadVideo(index) {
-    if(current !== index) history.push(current);
+    if (current !== index) history.push(current); // enregistrer précédente
     current = index;
     video.src = playlist[index].src;
     video.play();
@@ -40,29 +40,31 @@ playBtn.addEventListener('click', () => {
 // Volume
 volumeSlider.addEventListener('input', () => video.volume = volumeSlider.value);
 
-// Skip / précédent
+// Bouton précédent (avec historique)
 prevBtn.addEventListener('click', () => {
     if(history.length > 0){
         const last = history.pop();
         loadVideo(last);
     } else {
+        // si pas d'historique, recommence la vidéo courante
         video.currentTime = 0;
     }
 });
 
+// Bouton suivant
 nextBtn.addEventListener('click', () => {
     current = (current + 1) % playlist.length;
     loadVideo(current);
 });
 
-// Auto next quand vidéo finie
+// Quand la vidéo se termine, passer automatiquement à la suivante
 video.addEventListener('ended', () => nextBtn.click());
 
-// Menu Playlist
+// Ouvrir/fermer menu
 menuBtn.addEventListener('click', () => playlistMenu.style.display = 'block');
 closeMenu.addEventListener('click', () => playlistMenu.style.display = 'none');
 
-// Remplir menu
+// Remplir le menu
 playlist.forEach((item, index) => {
     const li = document.createElement('li');
     li.textContent = item.title;

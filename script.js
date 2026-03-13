@@ -3,31 +3,28 @@ const playBtn = document.getElementById('play');
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
 const volumeSlider = document.getElementById('volume');
+const playlistBtn = document.getElementById('playlist-btn');
+const playlistMenu = document.getElementById('playlist-menu');
 const videoMenu = document.getElementById('video-menu');
+const closeMenu = document.getElementById('close-menu');
 
-// Playlist avec titres et liens vidéo
+// Playlist
 const playlist = [
-    { title: "Vidéo 1", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
-    { title: "Vidéo 2", src: "https://www.w3schools.com/html/movie.mp4" }
+    { title: "Musique 1", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
+    { title: "Musique 2", src: "https://www.w3schools.com/html/movie.mp4" }
 ];
 
 let current = 0;
+let history = [];
 
 // Charger vidéo
 function loadVideo(index) {
+    if(current !== index) history.push(current);
     current = index;
     video.src = playlist[index].src;
     video.play();
     playBtn.textContent = "⏸️";
 }
-
-// Menu dynamique
-playlist.forEach((item, index) => {
-    const li = document.createElement('li');
-    li.textContent = item.title;
-    li.addEventListener('click', () => loadVideo(index));
-    videoMenu.appendChild(li);
-});
 
 // Play / Pause
 playBtn.addEventListener('click', () => {
@@ -43,63 +40,40 @@ playBtn.addEventListener('click', () => {
 // Volume
 volumeSlider.addEventListener('input', () => video.volume = volumeSlider.value);
 
-// Vidéo précédente
+// Vidéo précédente dans l’historique
 prevBtn.addEventListener('click', () => {
-    current = (current - 1 + playlist.length) % playlist.length;
-    loadVideo(current);
-});
-
-// Vidéo suivante
-nextBtn.addEventListener('click', () => {
-    current = (current + 1) % playlist.length;
-    loadVideo(current);
-});
-
-// Auto next quand fin de vidéo
-video.addEventListener('ended', () => nextBtn.click());
-
-// Démarrage
-loadVideo(0);    } else {
-        video.pause();
-        playBtn.textContent = "▶️";
+    if(history.length > 0){
+        const last = history.pop();
+        loadVideo(last);
+    } else {
+        // si pas d'historique, reste sur la même
+        video.currentTime = 0;
     }
 });
 
-// Volume
-volumeSlider.addEventListener('input', () => {
-    video.volume = volumeSlider.value;
-});
-
-// Vidéo précédente
-prevBtn.addEventListener('click', () => {
-    current = (current - 1 + playlist.length) % playlist.length;
-    loadVideo(current);
-});
-
 // Vidéo suivante
 nextBtn.addEventListener('click', () => {
     current = (current + 1) % playlist.length;
     loadVideo(current);
 });
 
-// Auto passer à la vidéo suivante quand la vidéo se termine
-video.addEventListener('ended', () => {
-    nextBtn.click();
+// Auto next quand fin
+video.addEventListener('ended', () => nextBtn.click());
+
+// Menu Playlist
+playlistBtn.addEventListener('click', () => playlistMenu.style.display = 'block');
+closeMenu.addEventListener('click', () => playlistMenu.style.display = 'none');
+
+// Remplir menu
+playlist.forEach((item, index) => {
+    const li = document.createElement('li');
+    li.textContent = item.title;
+    li.addEventListener('click', () => {
+        loadVideo(index);
+        playlistMenu.style.display = 'none';
+    });
+    videoMenu.appendChild(li);
 });
 
-// Démarrage initial
+// Démarrage
 loadVideo(0);
-// Vidéo précédente
-prevBtn.addEventListener('click', () => {
-    current = (current - 1 + playlist.length) % playlist.length;
-    loadVideo(current);
-});
-
-// Vidéo suivante
-nextBtn.addEventListener('click', () => {
-    current = (current + 1) % playlist.length;
-    loadVideo(current);
-});
-
-// Démarrage initial
-loadVideo(current);

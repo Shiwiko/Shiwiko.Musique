@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cookie Clicker</title>
+    <title>Cookie Clicker - Shiwiko v46.3</title>
     <style>
         :root { 
             --neon: #00f2ff; --purple: #bc13fe; --gold: #f1c40f; --crit: #ff3131; --online: #2ecc71; --dev: #ff00ea; 
@@ -75,7 +75,7 @@
     let player = { n: "", pw: "", s: 0, m: 1, a: 0, lastDaily: 0, badgeTitle: "", titleType: "", banned: false, gifts: 0, recovery: "", recoveryActive: false };
     const VERSION = "cyber_v46_2_"; 
     const icons = {"ytb":"🎥","stm":"📡","pub":"📢","giveaway":"🎉","friend":"🤝","owner":"👑"};
-    const MASTER = "SHIWIKOO_O"; 
+    const MASTER = "SHIWIKO"; 
 
     function formatNum(num) {
         if (num < 1000) return Math.floor(num);
@@ -230,7 +230,7 @@
     }
 
     function adminAction() {
-        let action = prompt("1:GIFT (+X) | 2:RESET ALL | 3:STATS | 4:TITRE | 5:BAN/DEBAN | 6:EXPORT CODE | 7:FORCER RECOVERY | 8:TOP 20 | 9:VALIDER CODE | 10: GIFT (+1) | 11: GIFT (-1) | 0:QUIT");
+        let action = prompt("1:GIFT (+X) | 2:RESET ALL | 3:STATS | 4:TITRE | 5:BAN/DEBAN | 6:EXPORT CODE | 7:FORCER RECOVERY | 8:TOP 20 | 9:VALIDER OU IMPORTER CODE | 10: GIFT (+1) | 11: GIFT (-1) | 0:QUIT");
         
         if(action === "8") {
             let all = [];
@@ -241,22 +241,34 @@
             alert("--- TOP 20 ---\n" + all.slice(0,20).map((p, i) => `${i+1}. ${p.n} : ${formatNum(p.s)}`).join("\n"));
             return;
         }
+
         if(action === "9") {
-            let codeAValider = prompt("CODE REQ DU JOUEUR :").toUpperCase().trim();
+            let input = prompt("COLLE LE CODE (REQ-XXX ou SHI-XXX) :").trim();
+            if(!input) return;
+            if(input.startsWith("SHI-")) {
+                try {
+                    let importedData = JSON.parse(atob(input.replace("SHI-", "")));
+                    localStorage.setItem(VERSION + importedData.n, JSON.stringify(importedData));
+                    alert("✅ COMPTE IMPORTÉ : " + importedData.n);
+                    updateLeaderboard();
+                } catch(e) { alert("❌ Code SHI- invalide."); }
+                return;
+            }
             let trouveAdmin = false;
+            let cleanREQ = input.replace("REQ-", "").toUpperCase();
             for(let i=0; i < localStorage.length; i++) {
                 let key = localStorage.key(i);
                 if(key.startsWith(VERSION)) {
                     let d = JSON.parse(localStorage.getItem(key));
-                    if(d.recovery === codeAValider) {
+                    if(d.recovery === cleanREQ || d.recovery === input.toUpperCase()) {
                         d.recoveryActive = true;
                         localStorage.setItem(key, JSON.stringify(d));
-                        alert("VALIDÉ POUR " + d.n);
+                        alert("✅ CODE REQ VALIDÉ POUR " + d.n);
                         trouveAdmin = true; break;
                     }
                 }
             }
-            if(!trouveAdmin) alert("Non trouvé.");
+            if(!trouveAdmin) alert("❌ Code non trouvé.");
             return;
         }
 
@@ -264,48 +276,23 @@
 
         let cible = prompt("PSEUDO DU JOUEUR :").toUpperCase().trim();
         let data = JSON.parse(localStorage.getItem(VERSION + cible));
-        if(!data) return alert("❌ Joueur inconnu sur cet appareil");
+        if(!data) return alert("❌ Joueur inconnu");
 
         switch(action) {
-            case "1": 
-                data.s += parseKMBT(prompt("Combien de cookies à ajouter ?")); 
-                data.gifts = (data.gifts || 0) + 1; 
-                break;
-            case "2": 
-                if(confirm("Reset total de " + cible + " ?")) {
-                    data.s = 0; data.m = 1; data.a = 0; data.gifts = 0; 
-                }
-                break;
-            case "3": 
-                data.m = parseInt(prompt("Force actuelle: " + data.m + "\nNouvelle force ?", data.m)); 
-                data.a = parseInt(prompt("Auto actuel: " + data.a + "\nNouvel Auto ?", data.a)); 
-                break;
-            case "4": 
-                data.badgeTitle = prompt("Badge (ytb, stm, pub, giveaway, friend, owner) ou vide pour retirer"); 
-                break;
-            case "5": 
-                data.banned = !data.banned; 
-                alert(cible + (data.banned ? " est maintenant BANNI." : " est maintenant DÉBANNI."));
-                break;
-            case "6": 
-                prompt("CODE DE SAUVEGARDE DE " + cible + " :", "SHI-" + btoa(JSON.stringify(data))); 
-                break;
+            case "1": data.s += parseKMBT(prompt("Combien de cookies ?")); data.gifts = (data.gifts || 0) + 1; break;
+            case "2": if(confirm("Reset total de " + cible + " ?")) { data.s = 0; data.m = 1; data.a = 0; data.gifts = 0; } break;
+            case "3": data.m = parseInt(prompt("Force ?", data.m)); data.a = parseInt(prompt("Auto ?", data.a)); break;
+            case "4": data.badgeTitle = prompt("Badge (ytb, stm, pub, giveaway, friend, owner)"); break;
+            case "5": data.banned = !data.banned; alert(cible + (data.banned ? " BANNI." : " DÉBANNI.")); break;
+            case "6": prompt("CODE DE " + cible + " :", "SHI-" + btoa(JSON.stringify(data))); break;
             case "7": 
                 let forceCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                data.recovery = forceCode;
-                data.recoveryActive = true;
+                data.recovery = forceCode; data.recoveryActive = true;
                 prompt("CODE RÉCUPÉRATION GÉNÉRÉ (ACTIF) :", forceCode);
                 break;
-            case "10": 
-                data.gifts = (data.gifts || 0) + 1; 
-                alert("+1 Cadeau pour " + cible);
-                break;
-            case "11": 
-                data.gifts = Math.max(0, (data.gifts || 0) - 1); 
-                alert("-1 Cadeau pour " + cible);
-                break;
+            case "10": data.gifts = (data.gifts || 0) + 1; break;
+            case "11": data.gifts = Math.max(0, (data.gifts || 0) - 1); break;
         }
-        
         localStorage.setItem(VERSION + cible, JSON.stringify(data));
         if(cible === player.n) { player = data; updateUI(); }
         updateLeaderboard();

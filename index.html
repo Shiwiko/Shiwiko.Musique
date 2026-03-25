@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cookie Clicker - Shiwiko v46.3</title>
+    <title>Cookie Clicker</title>
     <style>
         :root { 
             --neon: #00f2ff; --purple: #bc13fe; --gold: #f1c40f; --crit: #ff3131; --online: #2ecc71; --dev: #ff00ea; 
@@ -157,8 +157,17 @@
         if(!code) return;
         try {
             let data = JSON.parse(atob(code.replace("SHI-", "")));
-            player = data; save(); updateUI(); alert("Sauvegarde chargée !");
-        } catch(e) { alert("Code invalide."); }
+            
+            // SÉCURITÉ : Vérifier que le pseudo du code correspond au compte connecté
+            if(data.n.toUpperCase() !== player.n.toUpperCase()) {
+                return alert("❌ ERREUR : Ce code appartient à [" + data.n + "]. Vous ne pouvez pas l'utiliser sur le compte [" + player.n + "].");
+            }
+
+            player = data; 
+            save(); 
+            updateUI(); 
+            alert("✅ Sauvegarde chargée !");
+        } catch(e) { alert("❌ Code invalide."); }
     }
 
     function start() {
